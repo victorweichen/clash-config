@@ -86,7 +86,7 @@ proxy-groups:
     - { name: '🇭🇰 香港节点', type: url-test, proxies: ['0.5X 🇭🇰 香港0', '0.5X 🇭🇰 香港1', '0.5X 🇭🇰 香港2', '3.0X 🇭🇰 香港6', '1.0X 🇭🇰 香港7', '2.0X 🇭🇰 香港8 HKT', '0.5X 🇭🇰 香港9', '1.5X 🇭🇰 香港10 HGC 家宽', '0.7X 🇭🇰 香港14', '0.1X 🇭🇰 香港14 PornEmby专用'], url: 'http://www.gstatic.com/generate_204', interval: 300 }
     - { name: '🇹🇼 台湾节点', type: url-test, proxies: ['3.0X 🇹🇼 台湾1', '1.0X 🇹🇼 台湾2', '0.5X 🇹🇼 台湾3 家宽'], url: 'http://www.gstatic.com/generate_204', interval: 300 }
     - { name: '🇺🇲 美国节点', type: url-test, proxies: ['0.1X 🇺🇸 美国2', '0.2X 🇺🇸 美国3', '0.8X 🇺🇸 美国4', '0.1X 🇺🇸 美国8', '1.0X 🇺🇸 美国9', '0.5X 🇺🇸 美国10', '0.1X 🇺🇸 美国23', '0.8X 🇺🇸 美国16', '0.5X 🇺🇸 美国17'], url: 'http://www.gstatic.com/generate_204', interval: 300 }
-    - { name: '🇺🇲 美国Gemini', type: url-test, proxies: ['0.2X 🇺🇸 美国3', '0.1X 🇺🇸 美国23'], url: 'http://www.gstatic.com/generate_204', interval: 300 }
+    - { name: '🇺🇲 美国Gemini', type: url-test, proxies: ['0.1X 🇺🇸 美国23', '0.8X 🇺🇸 美国4', '1.0X 🇺🇸 美国9'], url: 'http://www.gstatic.com/generate_204', interval: 300 }
     - { name: '🇸🇬 狮城节点', type: url-test, proxies: ['0.5X 🇸🇬 新加坡1', '0.5X 🇸🇬 新加坡2', '1.0X 🇸🇬 新加坡3'], url: 'http://www.gstatic.com/generate_204', interval: 300 }
     - { name: '🇰🇷 韩国节点', type: url-test, proxies: ['1.0X 🇰🇷 韩国1'], url: 'http://www.gstatic.com/generate_204', interval: 300 }
     - { name: '🇯🇵 日本节点', type: url-test, proxies: ['0.5X 🇯🇵 日本1', '0.5X 🇯🇵 日本2', '1.0X 🇯🇵 日本3'], url: 'http://www.gstatic.com/generate_204', interval: 300 }
