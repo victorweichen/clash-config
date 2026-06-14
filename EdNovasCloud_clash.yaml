@@ -12,7 +12,12 @@ dns:
     ipv6: false
     use-hosts: true
     default-nameserver: [223.5.5.5, 119.29.29.29, 8.8.8.8, 1.1.1.1, 'tls://223.5.5.5', 'tls://1.1.1.1']
-    nameserver: [223.5.5.5, 223.6.6.6, 119.29.29.29, 8.8.8.8, 1.1.1.1, 'tls://223.5.5.5', 'tls://1.1.1.1', 'https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query']
+    nameserver: [223.5.5.5, 223.6.6.6, 119.29.29.29, 'https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query']
+    fallback: ['https://1.1.1.1/dns-query', 'https://8.8.8.8/dns-query', 'tls://1.1.1.1', 'tls://8.8.8.8']
+    fallback-filter:
+        geoip: true
+        geoip-code: CN
+        ipcidr: ['240.0.0.0/4', '0.0.0.0/8']
 proxies:
     - { name: '剩余流量：25 GB', type: vmess, server: shh.ysqhq.top, port: 21995, uuid: d1d55f35-f9a1-4985-9644-20bbf1b41bae, alterId: 0, cipher: auto, udp: true }
     - { name: '距离下次重置剩余：26 天', type: vmess, server: shh.ysqhq.top, port: 21995, uuid: d1d55f35-f9a1-4985-9644-20bbf1b41bae, alterId: 0, cipher: auto, udp: true }
@@ -59,7 +64,7 @@ proxies:
     - { name: '0.7X 🇭🇰 香港14', type: vmess, server: eee.ysqhq.top, port: 22137, uuid: d1d55f35-f9a1-4985-9644-20bbf1b41bae, alterId: 0, cipher: auto, udp: true }
     - { name: '0.1X 🇭🇰 香港14 PornEmby专用', type: vmess, server: eee.ysqhq.top, port: 21866, uuid: d1d55f35-f9a1-4985-9644-20bbf1b41bae, alterId: 0, cipher: auto, udp: true }
     - { name: '5.0X 🇺🇳 随机国家家宽', type: vmess, server: eee.ysqhq.top, port: 22140, uuid: d1d55f35-f9a1-4985-9644-20bbf1b41bae, alterId: 0, cipher: auto, udp: true }
-    - { name: '🏠 家庭宽带美国', type: socks5, server: 100.95.126.121, port: 1080 }
+    - { name: '🏠 家庭宽带美国', type: socks5, server: 100.95.126.121, port: 1080, interface-name: utun4 }
 proxy-groups:
     - { name: EdNovas云, type: select, proxies: [自动选择, 故障转移, 负载均衡, 手动切换, '🇭🇰 香港节点', '🇹🇼 台湾节点', '🇺🇲 美国节点', '🇺🇲 美国节点+tailnet', '🇸🇬 狮城节点', '🇰🇷 韩国节点', '🇯🇵 日本节点', 低倍率节点, 高倍率节点, DIRECT, '剩余流量：25 GB', '距离下次重置剩余：26 天', 套餐到期：2026-07-09, 'EdNovas云 https://ednovas.me/', '用户群 https://t.me/ednovasyun', '使用说明 https://help.ednovas.me', '0.1X 🇺🇸 美国2', '0.2X 🇺🇸 美国3', '0.8X 🇺🇸 美国4', '0.1X 🇺🇸 美国8', '1.0X 🇺🇸 美国9', '0.5X 🇺🇸 美国10', '0.1X 🇺🇸 美国23', '0.8X 🇺🇸 美国16', '0.5X 🇺🇸 美国17', '0.8X 🇨🇦 加拿大2', '0.8X 🇨🇦 加拿大3', '0.8X 🇳🇱 荷兰 2', '0.5X 🇱🇺 卢森堡', '0.2X 🇷🇺 俄罗斯', '0.5X 🇺🇦 乌克兰2', '0.5X 🇮🇩 印度尼西亚2', '2.0X 🇮🇳 印度', '0.5X 🇸🇬 新加坡1', '0.5X 🇸🇬 新加坡2', '1.0X 🇸🇬 新加坡3', '2.0X 🇦🇺 澳大利亚3', '1.0X 🇰🇷 韩国1', '0.5X 🇯🇵 日本1', '0.5X 🇯🇵 日本2', '1.0X 🇯🇵 日本3', '3.0X 🇹🇼 台湾1', '1.0X 🇹🇼 台湾2', '0.5X 🇹🇼 台湾3 家宽', '0.5X 🇭🇰 香港0', '0.5X 🇭🇰 香港1', '0.5X 🇭🇰 香港2', '3.0X 🇭🇰 香港6', '1.0X 🇭🇰 香港7', '2.0X 🇭🇰 香港8 HKT', '0.5X 🇭🇰 香港9', '1.5X 🇭🇰 香港10 HGC 家宽', '0.7X 🇭🇰 香港14', '0.1X 🇭🇰 香港14 PornEmby专用', '5.0X 🇺🇳 随机国家家宽'] }
     - { name: 自动选择, type: url-test, lazy: false, proxies: ['剩余流量：25 GB', '距离下次重置剩余：26 天', 套餐到期：2026-07-09, 'EdNovas云 https://ednovas.me/', '用户群 https://t.me/ednovasyun', '使用说明 https://help.ednovas.me', '0.1X 🇺🇸 美国2', '0.2X 🇺🇸 美国3', '0.8X 🇺🇸 美国4', '0.1X 🇺🇸 美国8', '0.5X 🇺🇸 美国10', '0.1X 🇺🇸 美国23', '0.8X 🇺🇸 美国16', '0.5X 🇺🇸 美国17', '0.8X 🇨🇦 加拿大2', '0.8X 🇨🇦 加拿大3', '0.8X 🇳🇱 荷兰 2', '0.5X 🇱🇺 卢森堡', '0.2X 🇷🇺 俄罗斯', '0.5X 🇺🇦 乌克兰2', '0.5X 🇮🇩 印度尼西亚2', '0.5X 🇸🇬 新加坡1', '0.5X 🇸🇬 新加坡2', '0.5X 🇯🇵 日本1', '0.5X 🇯🇵 日本2', '0.5X 🇹🇼 台湾3 家宽', '0.5X 🇭🇰 香港0', '0.5X 🇭🇰 香港1', '0.5X 🇭🇰 香港2', '0.5X 🇭🇰 香港9', '0.7X 🇭🇰 香港14', '0.1X 🇭🇰 香港14 PornEmby专用'], url: 'http://www.gstatic.com/generate_204', interval: 1800, tolerance: 20 }
@@ -88,8 +93,8 @@ proxy-groups:
     - { name: '🇹🇼 台湾节点', type: url-test, proxies: ['3.0X 🇹🇼 台湾1', '1.0X 🇹🇼 台湾2', '0.5X 🇹🇼 台湾3 家宽'], url: 'http://www.gstatic.com/generate_204', interval: 300 }
     - { name: '🇺🇲 美国节点', type: url-test, proxies: ['0.1X 🇺🇸 美国2', '0.2X 🇺🇸 美国3', '0.8X 🇺🇸 美国4', '0.1X 🇺🇸 美国8', '1.0X 🇺🇸 美国9', '0.5X 🇺🇸 美国10', '0.1X 🇺🇸 美国23', '0.8X 🇺🇸 美国16', '0.5X 🇺🇸 美国17'], url: 'http://www.gstatic.com/generate_204', interval: 300 }
     - { name: '🇺🇲 美国Gemini', type: url-test, proxies: ['0.1X 🇺🇸 美国23', '0.8X 🇺🇸 美国4', '1.0X 🇺🇸 美国9'], url: 'http://www.gstatic.com/generate_204', interval: 300 }
-    - { name: '🇺🇲 美国节点+tailnet', type: url-test, proxies: ['🏠 家庭宽带美国', '0.1X 🇺🇸 美国2', '0.2X 🇺🇸 美国3', '0.8X 🇺🇸 美国4', '0.1X 🇺🇸 美国8', '1.0X 🇺🇸 美国9', '0.5X 🇺🇸 美国10', '0.1X 🇺🇸 美国23', '0.8X 🇺🇸 美国16', '0.5X 🇺🇸 美国17'], url: 'http://www.gstatic.com/generate_204', interval: 300 }
-    - { name: '🇺🇲 Gemini+tailnet', type: url-test, proxies: ['🏠 家庭宽带美国', '0.1X 🇺🇸 美国23', '0.8X 🇺🇸 美国4', '1.0X 🇺🇸 美国9'], url: 'http://www.gstatic.com/generate_204', interval: 300 }
+    - { name: '🇺🇲 美国节点+tailnet', type: url-test, proxies: ['🏠 家庭宽带美国', '0.1X 🇺🇸 美国2', '0.2X 🇺🇸 美国3', '0.8X 🇺🇸 美国4', '0.1X 🇺🇸 美国8', '1.0X 🇺🇸 美国9', '0.5X 🇺🇸 美国10', '0.1X 🇺🇸 美国23', '0.8X 🇺🇸 美国16', '0.5X 🇺🇸 美国17'], url: 'http://1.1.1.1/', interval: 300 }
+    - { name: '🇺🇲 Gemini+tailnet', type: url-test, proxies: ['🏠 家庭宽带美国', '0.1X 🇺🇸 美国23', '0.8X 🇺🇸 美国4', '1.0X 🇺🇸 美国9'], url: 'http://1.1.1.1/', interval: 300 }
     - { name: '🇸🇬 狮城节点', type: url-test, proxies: ['0.5X 🇸🇬 新加坡1', '0.5X 🇸🇬 新加坡2', '1.0X 🇸🇬 新加坡3'], url: 'http://www.gstatic.com/generate_204', interval: 300 }
     - { name: '🇰🇷 韩国节点', type: url-test, proxies: ['1.0X 🇰🇷 韩国1'], url: 'http://www.gstatic.com/generate_204', interval: 300 }
     - { name: '🇯🇵 日本节点', type: url-test, proxies: ['0.5X 🇯🇵 日本1', '0.5X 🇯🇵 日本2', '1.0X 🇯🇵 日本3'], url: 'http://www.gstatic.com/generate_204', interval: 300 }
