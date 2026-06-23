@@ -109,7 +109,6 @@ proxy-groups:
 rule-providers:
     china-domain: { type: http, behavior: domain, url: 'https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/direct.txt', path: ./ruleset/china-domain.yaml, interval: 86400 }
     china-ip: { type: http, behavior: ipcidr, url: 'https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/cncidr.txt', path: ./ruleset/china-ip.yaml, interval: 86400 }
-    us-domain: { type: http, behavior: domain, format: mrs, url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/release/geo/geosite/us.mrs', path: ./ruleset/us-domain.mrs, interval: 86400 }
 rules:
     - 'DOMAIN-SUFFIX,openrouter.ai,OpenRouter'
     - 'DOMAIN,ednovas.org,DIRECT'
@@ -42993,6 +42992,8 @@ rules:
     - 'DOMAIN-SUFFIX,tailscale.com,DIRECT'
     - 'DOMAIN-SUFFIX,tailscale.io,DIRECT'
     - 'DOMAIN-SUFFIX,tailscale.net,DIRECT'
-    - 'RULE-SET,us-domain,🇺🇲 美国节点'
+    - 'DOMAIN-SUFFIX,events.data.microsoft.com,DIRECT'
+    - 'DOMAIN-SUFFIX,ecs.office.com,DIRECT'
+    - 'DOMAIN-SUFFIX,sadownload.mcafee.com,DIRECT'
     - 'GEOIP,US,🇺🇲 美国节点'
     - 'MATCH,漏网之鱼'
