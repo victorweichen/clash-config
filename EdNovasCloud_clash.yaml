@@ -43008,6 +43008,8 @@ rules:
     - 'DOMAIN-SUFFIX,ecs.office.com,DIRECT'
     - 'DOMAIN-SUFFIX,sadownload.mcafee.com,DIRECT'
     - 'DOMAIN-SUFFIX,datadoghq.com,DIRECT'
+    - 'DOMAIN-SUFFIX,wns.windows.com,DIRECT'
+    - 'DOMAIN-SUFFIX,sharepoint.com,DIRECT'
     # CDNs accessible in China without VPN
     - 'DOMAIN-SUFFIX,akamai.net,DIRECT'
     - 'DOMAIN-SUFFIX,akamaized.net,DIRECT'
