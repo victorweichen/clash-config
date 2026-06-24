@@ -10,8 +10,11 @@ The file is synced to a GitHub Gist which both devices pull from via Clash Verge
 ```
 Source of truth:  ~/clash-verge-ednovas/profiles/EdNovasCloud_clash.yaml  (Mac)
 Git mirror:       ~/clash-config-repo/EdNovasCloud_clash.yaml              (this repo)
+                  GitHub: github.com/victorweichen/clash-config (branch: main)
 Gist:             gist.github.com/victorweichen/763389e1fe30b3ae79f3a75f37b4ca61
                   file: EdNovasCloud_clash_new.yaml
+jsDelivr CDN:     https://cdn.jsdelivr.net/gh/victorweichen/clash-config@main/EdNovasCloud_clash.yaml
+                  (auto-served from GitHub; purge cache after push)
 Active configs (read by mihomo at runtime — NOT the same as the source profile):
   Mac:    ~/Library/Application Support/io.github.clash-verge-rev.clash-verge-rev/clash-verge.yaml
   Lenovo: %APPDATA%\io.github.clash-verge-rev.clash-verge-rev\clash-verge.yaml
@@ -56,6 +59,17 @@ req = urllib.request.Request(
 urllib.request.urlopen(req)
 print('Gist updated')
 "
+```
+
+### Step 3b — Purge jsDelivr CDN cache
+The jsDelivr URL below serves directly from the GitHub repo and updates automatically on `git push`,
+but CDN cache may lag. Purge it immediately after pushing:
+```bash
+curl -s "https://purge.jsdelivr.net/gh/victorweichen/clash-config@main/EdNovasCloud_clash.yaml"
+```
+jsDelivr CDN URL (read-only, served from GitHub):
+```
+https://cdn.jsdelivr.net/gh/victorweichen/clash-config@main/EdNovasCloud_clash.yaml
 ```
 
 ### Step 4 — Pull on each device
