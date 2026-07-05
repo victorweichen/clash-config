@@ -114,6 +114,11 @@ rules:
   - DOMAIN-SUFFIX,ytimg.com,Google
   - DOMAIN-SUFFIX,ggpht.com,Google
 
+  # ── CDN / 配置更新通道（国内可达，必须直连）─────────────────────
+  - DOMAIN-SUFFIX,jsdelivr.net,DIRECT
+  - DOMAIN-SUFFIX,fastly.net,DIRECT
+  - DOMAIN-SUFFIX,fastlylb.net,DIRECT
+
   # ── 其余全部直连 ────────────────────────────────────────────────
   - IP-CIDR,100.64.0.0/10,DIRECT,no-resolve
   - GEOIP,CN,DIRECT
