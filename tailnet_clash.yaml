@@ -48,8 +48,8 @@ rules:
   # ── OpenRouter ──────────────────────────────────────────────────
   - DOMAIN-SUFFIX,openrouter.ai,AI & Agent
 
-  # ── DeepSeek ────────────────────────────────────────────────────
-  - DOMAIN-SUFFIX,deepseek.com,AI & Agent
+  # ── DeepSeek（国内服务，直连）────────────────────────────────────
+  - DOMAIN-SUFFIX,deepseek.com,DIRECT
 
   # ── xAI / Grok ──────────────────────────────────────────────────
   - DOMAIN-SUFFIX,x.ai,AI & Agent
