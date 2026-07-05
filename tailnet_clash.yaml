@@ -115,5 +115,6 @@ rules:
   - DOMAIN-SUFFIX,ggpht.com,Google
 
   # ── 其余全部直连 ────────────────────────────────────────────────
+  - IP-CIDR,100.64.0.0/10,DIRECT,no-resolve
   - GEOIP,CN,DIRECT
   - MATCH,漏网之鱼
