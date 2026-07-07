@@ -21,7 +21,7 @@ dns:
     ipcidr: ['240.0.0.0/4', '0.0.0.0/8']
 
 proxies:
-  - { name: '🏠 家庭宽带美国', type: socks5, server: 100.95.126.121, port: 1080, interface-name: utun5 }
+  - { name: '🏠 家庭宽带美国', type: socks5, server: 127.0.0.1, port: 11080 }
 
 proxy-groups:
   - { name: 'AI & Agent', type: select, proxies: ['🏠 家庭宽带美国', DIRECT] }
