@@ -25,102 +25,20 @@ proxies:
   - { name: '🏠 家庭宽带美国', type: socks5, server: 127.0.0.1, port: 11080 }
 
 proxy-groups:
-  - { name: 'AI & Agent', type: select, proxies: ['🏠 家庭宽带美国', DIRECT] }
-  - { name: Google, type: select, proxies: ['🏠 家庭宽带美国', DIRECT] }
-  - { name: 漏网之鱼, type: select, proxies: [DIRECT, '🏠 家庭宽带美国'] }
+  - { name: 漏网之鱼, type: select, proxies: ['🏠 家庭宽带美国', DIRECT] }
 
 rules:
-  # ── Anthropic / Claude ──────────────────────────────────────────
-  - DOMAIN-SUFFIX,anthropic.com,AI & Agent
-  - DOMAIN-SUFFIX,claude.ai,AI & Agent
-
-  # ── OpenAI / ChatGPT ────────────────────────────────────────────
-  - DOMAIN-SUFFIX,openai.com,AI & Agent
-  - DOMAIN-SUFFIX,chatgpt.com,AI & Agent
-  - DOMAIN-SUFFIX,oai.azure.com,AI & Agent
-  - DOMAIN-SUFFIX,openaiapi.azure.com,AI & Agent
-
-  # ── Google AI / Gemini / Vertex ─────────────────────────────────
-  - DOMAIN-SUFFIX,generativelanguage.googleapis.com,AI & Agent
-  - DOMAIN-SUFFIX,aiplatform.googleapis.com,AI & Agent
-  - DOMAIN-SUFFIX,ml.googleapis.com,AI & Agent
-  - DOMAIN-SUFFIX,aistudio.google.com,AI & Agent
-
-  # ── OpenRouter ──────────────────────────────────────────────────
-  - DOMAIN-SUFFIX,openrouter.ai,AI & Agent
-
   # ── DeepSeek（国内服务，直连）────────────────────────────────────
   - DOMAIN-SUFFIX,deepseek.com,DIRECT
-
-  # ── xAI / Grok ──────────────────────────────────────────────────
-  - DOMAIN-SUFFIX,x.ai,AI & Agent
-  - DOMAIN-SUFFIX,grok.com,AI & Agent
-
-  # ── Perplexity ──────────────────────────────────────────────────
-  - DOMAIN-SUFFIX,perplexity.ai,AI & Agent
-
-  # ── Cohere ──────────────────────────────────────────────────────
-  - DOMAIN-SUFFIX,cohere.com,AI & Agent
-  - DOMAIN-SUFFIX,cohere.ai,AI & Agent
-
-  # ── Mistral ─────────────────────────────────────────────────────
-  - DOMAIN-SUFFIX,mistral.ai,AI & Agent
-
-  # ── Together AI ─────────────────────────────────────────────────
-  - DOMAIN-SUFFIX,together.ai,AI & Agent
-  - DOMAIN-SUFFIX,together.xyz,AI & Agent
-
-  # ── Groq ────────────────────────────────────────────────────────
-  - DOMAIN-SUFFIX,groq.com,AI & Agent
-
-  # ── Fireworks AI ────────────────────────────────────────────────
-  - DOMAIN-SUFFIX,fireworks.ai,AI & Agent
-
-  # ── HuggingFace ─────────────────────────────────────────────────
-  - DOMAIN-SUFFIX,huggingface.co,AI & Agent
-
-  # ── Replicate ───────────────────────────────────────────────────
-  - DOMAIN-SUFFIX,replicate.com,AI & Agent
-
-  # ── Midjourney ──────────────────────────────────────────────────
-  - DOMAIN-SUFFIX,midjourney.com,AI & Agent
-  - DOMAIN-SUFFIX,discord.com,AI & Agent
-  - DOMAIN-SUFFIX,discordapp.com,AI & Agent
-
-  # ── Stability AI ────────────────────────────────────────────────
-  - DOMAIN-SUFFIX,stability.ai,AI & Agent
-
-  # ── Meta AI ─────────────────────────────────────────────────────
-  - DOMAIN-SUFFIX,meta.ai,AI & Agent
-
-  # ── Character AI ────────────────────────────────────────────────
-  - DOMAIN-SUFFIX,character.ai,AI & Agent
-
-  # ── Poe ─────────────────────────────────────────────────────────
-  - DOMAIN-SUFFIX,poe.com,AI & Agent
-
-  # ── Google 全系服务 ─────────────────────────────────────────────
-  - DOMAIN-SUFFIX,google.com,Google
-  - DOMAIN-SUFFIX,googleapis.com,Google
-  - DOMAIN-SUFFIX,googleusercontent.com,Google
-  - DOMAIN-SUFFIX,googlevideo.com,Google
-  - DOMAIN-SUFFIX,googlecloud.com,Google
-  - DOMAIN-SUFFIX,google-analytics.com,Google
-  - DOMAIN-SUFFIX,googletagmanager.com,Google
-  - DOMAIN-SUFFIX,googlesyndication.com,Google
-  - DOMAIN-SUFFIX,gstatic.com,Google
-  - DOMAIN-SUFFIX,gmail.com,Google
-  - DOMAIN-SUFFIX,youtube.com,Google
-  - DOMAIN-SUFFIX,youtu.be,Google
-  - DOMAIN-SUFFIX,ytimg.com,Google
-  - DOMAIN-SUFFIX,ggpht.com,Google
 
   # ── CDN / 配置更新通道（国内可达，必须直连）─────────────────────
   - DOMAIN-SUFFIX,jsdelivr.net,DIRECT
   - DOMAIN-SUFFIX,fastly.net,DIRECT
   - DOMAIN-SUFFIX,fastlylb.net,DIRECT
 
-  # ── 其余全部直连 ────────────────────────────────────────────────
+  # ── Tailscale CGNAT 段（防止 TUN 路由死循环）──────────────────────
   - IP-CIDR,100.64.0.0/10,DIRECT,no-resolve
+
+  # ── 中国大陆直连，其余全部走美国家庭宽带 ─────────────────────────
   - GEOIP,CN,DIRECT
   - MATCH,漏网之鱼
