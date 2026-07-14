@@ -38958,6 +38958,7 @@ rules:
     - 'DOMAIN-SUFFIX,gartlive.com,EdNovas云'
     - 'DOMAIN-SUFFIX,gate-project.com,EdNovas云'
     - 'DOMAIN-SUFFIX,gate.io,EdNovas云'
+    - 'DOMAIN-SUFFIX,gate.com,EdNovas云'
     - 'DOMAIN-SUFFIX,gatecoin.com,EdNovas云'
     - 'DOMAIN-SUFFIX,gather.com,EdNovas云'
     - 'DOMAIN-SUFFIX,gatherproxy.com,EdNovas云'
