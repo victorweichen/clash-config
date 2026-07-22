@@ -22,7 +22,7 @@ dns:
     ipcidr: ['240.0.0.0/4', '0.0.0.0/8']
 
 proxies:
-  - { name: '🏠 家庭宽带美国', type: socks5, server: 100.95.126.121, port: 1080, interface-name: Tailscale }
+  - { name: '🏠 家庭宽带美国', type: socks5, server: 100.95.126.121, port: 1080, interface-name: Tailscale, udp: true }
 
 proxy-groups:
   - { name: 漏网之鱼, type: select, proxies: ['🏠 家庭宽带美国', DIRECT] }
