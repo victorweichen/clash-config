@@ -111,8 +111,11 @@ proxy-groups:
 rule-providers:
     china-domain: { type: http, behavior: domain, url: 'https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/direct.txt', path: ./ruleset/china-domain.yaml, interval: 86400 }
     china-ip: { type: http, behavior: ipcidr, url: 'https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/cncidr.txt', path: ./ruleset/china-ip.yaml, interval: 86400 }
+    telegram-ip: { type: http, behavior: ipcidr, url: 'https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/telegramcidr.txt', path: ./ruleset/telegram-ip.yaml, interval: 86400 }
 rules:
     - 'IP-CIDR,100.64.0.0/10,DIRECT,no-resolve'
+    - 'RULE-SET,telegram-ip,EdNovas云'
+    - 'DOMAIN-KEYWORD,telegram,EdNovas云'
     - 'DOMAIN,cdn.nmsl.sb,DIRECT'
     - 'DOMAIN-KEYWORD,ednovas,EdNovas云'
     - 'DOMAIN,dl.google.com,EdNovas云'
