@@ -1,5 +1,22 @@
 # CLAUDE.md — EdNovas Clash Config Repo
 
+> **Read `README.md` first.** The current Mac workflow is: drop the fresh
+> subscription on `EdNovasCloud_clash_upstream.yaml`, run `merge_ednovas.py`,
+> load the generated `EdNovasCloud_clash_v2.yaml` as a **Local** profile. That
+> script is the source of truth for what we customize and why — do not hand-edit
+> the generated profile, it is overwritten on every run.
+>
+> This file still documents the older hand-edit + Gist flow (used by
+> `EdNovasCloud_clash.yaml` / `_win.yaml` / `tailnet_clash_*.yaml`) plus device
+> access, mihomo API usage, and rule-ordering analysis — all still accurate and
+> useful. Two things below are **stale**, superseded by the v2 setup:
+>
+> - The `🏠 家庭宽带美国` node on Mac is now `socks5 127.0.0.1:11080` (local gost
+>   relay), **not** `100.95.126.121:1080 / interface-name: utun4`. The direct
+>   form with `interface-name: Tailscale` is still correct for Lenovo.
+> - Tailscale interface numbers are no longer hardcoded anywhere; the script
+>   detects them at generation time (macOS renumbers utun across reboots).
+
 This repo holds a customized version of an EdNovas subscription config (`EdNovasCloud_clash.yaml`).
 The file is synced to a GitHub Gist which both devices pull from via Clash Verge's "Update" button.
 

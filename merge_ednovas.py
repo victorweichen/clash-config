@@ -18,9 +18,14 @@ Usage:  python3 merge_ednovas.py            # SRC -> DST
 Verify: verge-mihomo -t -f <DST>            # never load an unvalidated config
 """
 import re
+import subprocess
 
-SRC = "/Users/victorchen/Downloads/EdNovasCloud_clash .yaml"
-DST = "/Users/victorchen/clash-config-repo/EdNovasCloud_clash_v2.yaml"
+REPO = "/Users/victorchen/clash-config-repo"
+# The upstream subscription is tracked in this repo, so `script + SRC` fully
+# reproduces DST. Copy each fresh download over SRC (see README) rather than
+# pointing this at ~/Downloads, whose filename the browser keeps changing.
+SRC = f"{REPO}/EdNovasCloud_clash_upstream.yaml"
+DST = f"{REPO}/EdNovasCloud_clash_v2.yaml"
 
 HOME   = "'🏠 家庭宽带美国'"      # gost relay -> Mac mini SOCKS5
 TSNET  = "'🏠 家庭宽带tsnet'"     # mihomo's in-process tailscale node
@@ -41,10 +46,23 @@ TAILNET_HOSTS = {
     "xiaofangs-macbook-pro.tail2453b3.ts.net": "100.126.22.3",
 }
 
-# macOS renumbers utun interfaces across reboots (utun5->utun4 has bitten us).
-# When tailnet access breaks, check `ifconfig` for the interface holding a 100.x
-# address and update this, then re-run.
-TAILNET_IFACE = "utun10"
+def detect_tailnet_iface():
+    """Whichever utun interface currently holds a 100.x (CGNAT) address.
+
+    macOS renumbers utun interfaces across reboots — this drifted utun10 -> utun5
+    mid-session once, silently pointing the config at an interface that no longer
+    existed. Detecting at generation time means a re-run is the whole fix; a
+    hardcoded value quietly rots instead.
+    """
+    out = subprocess.run(["ifconfig"], capture_output=True, text=True).stdout
+    for block in re.split(r"^(?=\w)", out, flags=re.M):
+        name = block.split(":", 1)[0]
+        if name.startswith("utun") and re.search(r"inet 100\.\d+\.\d+\.\d+", block):
+            return name
+    raise SystemExit("no utun interface holds a 100.x address — is Tailscale up?")
+
+
+TAILNET_IFACE = detect_tailnet_iface()
 
 # Measured dead 2026-08-17: server TCP connects but the vmess tunnel carries
 # nothing — 4/4 requests timed out at a flat 5s (its server is japan.ysqhq.top
