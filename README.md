@@ -123,7 +123,10 @@ for v in (d.get('Peer') or {}).values():
 
 ```bash
 cd ~/clash-config-repo
-git -c http.proxy=socks5h://100.95.126.121:1080 push     # 直连 github 被 SNI 阻断，必须走代理
+git push     # 直接推即可 — TUN 开着时 git 流量走 DomainKeyword(github) 规则，
+             # 自动进 EdNovas云（当前是 🏠 家庭宽带tsnet），不用手动指定代理。
+             # 例外：TUN 关掉、只留系统代理时 git 不认系统代理设置，会直连
+             # github 被 SNI 阻断 —— 这时才需要 -c http.proxy=socks5h://100.95.126.121:1080
 
 F=EdNovasCloud_clash_win.yaml
 curl -sS "https://purge.jsdelivr.net/gh/victorweichen/clash-config@main/$F"
