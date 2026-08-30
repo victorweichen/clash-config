@@ -29,7 +29,6 @@ DST = f"{REPO}/EdNovasCloud_clash_v2.yaml"
 
 HOME   = "'🏠 家庭宽带美国'"      # gost relay -> Mac mini SOCKS5
 TSNET  = "'🏠 家庭宽带tsnet'"     # mihomo's in-process tailscale node
-TDIRECT = "'🔗 tailnet直连'"      # DIRECT pinned to the Tailscale interface
 US     = "'🇺🇲 美国节点'"
 UST    = "'🇺🇲 美国节点+tailnet'"
 GEMT   = "'🇺🇲 Gemini+tailnet'"
@@ -49,10 +48,12 @@ TAILNET_HOSTS = {
 def detect_tailnet_iface():
     """Whichever utun interface currently holds a 100.x (CGNAT) address.
 
-    macOS renumbers utun interfaces across reboots — this drifted utun10 -> utun5
-    mid-session once, silently pointing the config at an interface that no longer
-    existed. Detecting at generation time means a re-run is the whole fix; a
-    hardcoded value quietly rots instead.
+    Only feeds the nameserver-policy DNS fallback below (for tailnet machines
+    NOT in TAILNET_HOSTS) — tailnet routing itself goes via the tsnet node now,
+    not an interface-pinned outbound, so this is no longer on the critical
+    path. macOS renumbers utun interfaces across reboots, sometimes more than
+    once in a session (utun10 -> utun5 -> utun4 happened within one), so this
+    still needs detecting fresh each run rather than hardcoding.
     """
     out = subprocess.run(["ifconfig"], capture_output=True, text=True).stdout
     for block in re.split(r"^(?=\w)", out, flags=re.M):
@@ -176,14 +177,23 @@ lines.insert(pg + 1,
              f"state-dir: ./ts-state-mihomo, exit-node: 100.95.126.121, "
              f"exit-node-allow-lan-access: false, ephemeral: false, udp: true }}")
 
-# (c) DIRECT pinned to the Tailscale interface. Plain DIRECT cannot reach
-# tailnet addresses: with auto-detect-interface, mihomo binds its outbound
-# socket to the physical NIC, and 100.x only routes over the Tailscale
-# interface — measured as `dial tcp 100.95.126.121:9443: i/o timeout` while the
-# host's own stack reached the same address in 0.77s. (Tailscale's
-# 100.64.0.0/10 route is more specific than the TUN default route, so host
-# traffic never enters mihomo; only apps using the system proxy hit this.)
-lines.insert(pg + 2, f"    - {{ name: {TDIRECT}, type: direct, interface-name: {TAILNET_IFACE} }}")
+# (c) tailnet traffic goes out via the tsnet node (b), NOT a DIRECT outbound.
+# Plain DIRECT cannot reach tailnet addresses: with auto-detect-interface,
+# mihomo binds its outbound socket to the physical NIC, and 100.x only routes
+# over the Tailscale interface — measured as `dial tcp 100.95.126.121:9443:
+# i/o timeout` while the host's own stack reached the same address in 0.77s.
+# A `direct, interface-name: <utunN>` outbound "fixed" this once, but macOS
+# renumbers utun interfaces — sometimes more than once in a single session —
+# and every renumbering silently broke tailnet access again (`interface not
+# found`) until the profile was regenerated and reloaded.
+# tsnet has no such dependency: it's a tailnet member in its own right and
+# reaches other peers over the tailnet mesh directly, independent of
+# exit-node and independent of any macOS interface name. Verified 2026-08-30
+# via mihomo's per-proxy delay-check (bypasses the rule table): dialing a
+# CLOSED port on a different peer (Lenovo:9090) timed out like a real
+# connection failure, dialing an OPEN port on that same peer (Lenovo:22)
+# failed fast on HTTP parsing instead of timing out — i.e. tsnet actually
+# reached that peer's TCP stack, not just its own configured exit-node.
 
 # ── 4. proxy-groups ──────────────────────────────────────────────────
 prepend_member("EdNovas云", HOME)
@@ -304,10 +314,10 @@ MS_DIRECT_SUFFIXES = [
     "akamai.net", "akamaized.net", "akamaihd.net", "akamaiedge.net",
     "akamaistream.net", "sadownload.mcafee.com", "datadoghq.com", "slackb.com",
 ]
-td = TDIRECT.strip("'")
+tsnet_name = TSNET.strip("'")
 head_rules = [
     "    # ── Tailscale CGNAT: must be first, else TUN loops on the SOCKS5 relay ──",
-    f"    - 'IP-CIDR,100.64.0.0/10,{td},no-resolve'",
+    f"    - 'IP-CIDR,100.64.0.0/10,{tsnet_name},no-resolve'",
     "    # ── Telegram: desktop client dials cached DC IPs directly, so the ──",
     "    # ── domain rules below aren't enough; needs the full ASN ranges. ──",
     "    - 'RULE-SET,telegram-ip,EdNovas云'",
@@ -322,7 +332,7 @@ head_rules = [
     "    - 'DOMAIN-SUFFIX,tailscale.io,DIRECT'",
     "    - 'DOMAIN-SUFFIX,tailscale.net,DIRECT'",
     "    # ── tailnet: must use the interface-pinned outbound, not DIRECT ──",
-    f"    - 'DOMAIN-SUFFIX,ts.net,{td}'",
+    f"    - 'DOMAIN-SUFFIX,ts.net,{tsnet_name}'",
     "    # ── gate.com: site migrated off gate.io; new domain had no rule ──",
     "    - 'DOMAIN-SUFFIX,gate.com,EdNovas云'",
     "    - 'DOMAIN-SUFFIX,openrouter.ai,OpenRouter'",
