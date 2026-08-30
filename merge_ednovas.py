@@ -18,7 +18,6 @@ Usage:  python3 merge_ednovas.py            # SRC -> DST
 Verify: verge-mihomo -t -f <DST>            # never load an unvalidated config
 """
 import re
-import subprocess
 
 REPO = "/Users/victorchen/clash-config-repo"
 # The upstream subscription is tracked in this repo, so `script + SRC` fully
@@ -45,25 +44,6 @@ TAILNET_HOSTS = {
     "xiaofangs-macbook-pro.tail2453b3.ts.net": "100.126.22.3",
 }
 
-def detect_tailnet_iface():
-    """Whichever utun interface currently holds a 100.x (CGNAT) address.
-
-    Only feeds the nameserver-policy DNS fallback below (for tailnet machines
-    NOT in TAILNET_HOSTS) — tailnet routing itself goes via the tsnet node now,
-    not an interface-pinned outbound, so this is no longer on the critical
-    path. macOS renumbers utun interfaces across reboots, sometimes more than
-    once in a session (utun10 -> utun5 -> utun4 happened within one), so this
-    still needs detecting fresh each run rather than hardcoding.
-    """
-    out = subprocess.run(["ifconfig"], capture_output=True, text=True).stdout
-    for block in re.split(r"^(?=\w)", out, flags=re.M):
-        name = block.split(":", 1)[0]
-        if name.startswith("utun") and re.search(r"inet 100\.\d+\.\d+\.\d+", block):
-            return name
-    raise SystemExit("no utun interface holds a 100.x address — is Tailscale up?")
-
-
-TAILNET_IFACE = detect_tailnet_iface()
 
 # Measured dead 2026-08-17: server TCP connects but the vmess tunnel carries
 # nothing — 4/4 requests timed out at a flat 5s (its server is japan.ysqhq.top
@@ -131,15 +111,25 @@ lines.insert(0, "ipv6: false")
 i = find(lambda l: l.strip().startswith("nameserver: [223.5.5.5"), "dns nameserver")[0]
 lines[i:i + 1] = [
     "    nameserver: [223.5.5.5, 223.6.6.6, 119.29.29.29, 'https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query']",
-    # MagicDNS. A plain `100.100.100.100` entry does NOT work: mihomo sends its
-    # own DNS queries from the physical interface (bypassing its own TUN to
-    # avoid a loop), and Tailscale's resolver is only reachable over the
-    # Tailscale interface — measured as
+    # MagicDNS fallback (for tailnet names NOT in TAILNET_HOSTS below, which
+    # resolves those with zero DNS traffic). A plain `100.100.100.100` entry
+    # does NOT work: mihomo sends its own DNS queries from the physical
+    # interface (bypassing its own TUN to avoid a loop), and Tailscale's
+    # resolver is only reachable over the Tailscale interface — measured as
     # `read udp 192.168.1.47:...->100.100.100.100:53: i/o timeout`.
-    # Binding the query to that interface fixes it; TAILNET_HOSTS covers the
-    # machines we actually use when the interface name drifts.
+    # `#<name>` binds to a PROXY by that name if one exists (falling back to
+    # an interface name otherwise, per mihomo's DNS docs) — so this routes the
+    # query through the gost-relay home node instead of naming any interface.
+    # Must be gost, not tsnet: 100.100.100.100 (Tailscale's "Quad100" DNS stub)
+    # is intercepted locally by the full tailscaled daemon on whichever machine
+    # actually dials it — the Mac mini runs that, but mihomo's embedded tsnet
+    # client does not implement Quad100 itself, so tsnet can reach every other
+    # tailnet peer directly (verified) yet times out dialing 100.100.100.100
+    # specifically. Must be TCP: plain UDP through this relay reliably fails
+    # with `use of closed network connection`; TCP resolved correctly on 3/3
+    # tries in testing.
     "    nameserver-policy:",
-    f"        '+.ts.net': ['100.100.100.100#{TAILNET_IFACE}']",
+    f"        '+.ts.net': ['tcp://100.100.100.100#{HOME.strip(chr(39))}']",
     "    fallback: ['https://1.1.1.1/dns-query', 'https://8.8.8.8/dns-query', 'tls://1.1.1.1', 'tls://8.8.8.8']",
     "    fallback-filter:",
     "        geoip: true",
