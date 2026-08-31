@@ -1,6 +1,2 @@
 *.bak
-
-# Build artifact of merge_ednovas.py (regenerate, do not commit):
-# it is the upstream subscription of the day + our patches.
-EdNovasCloud_clash_v2.yaml
 .DS_Store

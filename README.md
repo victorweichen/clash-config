@@ -17,13 +17,14 @@ Clash Verge / mihomo 配置。核心是一条规矩：
 |---|---|---|
 | `merge_ednovas.py` | **源**（跟踪） | 全部定制逻辑 + 每项改动的理由和实测数据 |
 | `EdNovasCloud_clash_upstream.yaml` | **源**（跟踪） | 机场原版订阅，脚本的输入 |
-| `EdNovasCloud_clash_v2.yaml` | **产物**（不跟踪，已 gitignore） | 脚本输出，随时可重新生成 |
-| `EdNovasCloud_clash.yaml` | 源（跟踪） | Mac 用的旧版 EdNovas 配置，经 CDN 分发 |
+| `EdNovasCloud_clash_v2.yaml` | **产物**（跟踪，经 CDN 分发） | 脚本输出，Mac / Android 都订阅这份，经 CDN 分发 |
+| `EdNovasCloud_clash.yaml` | 源（跟踪） | Mac 用的旧版 EdNovas 配置（已被 v2 取代，保留供参考） |
 | `EdNovasCloud_clash_win.yaml` | 源（跟踪） | Lenovo 版（家庭节点直连 `100.95.126.121:1080` + `interface-name: Tailscale`） |
 | `tailnet_clash_mac.yaml` / `_win.yaml` | 源（跟踪） | 纯 tailnet 配置（不含机场节点） |
 
-产物不进 git：它 = 当天的订阅内容 + 我们的补丁，提交它会把 ~20 个真正的决策淹没
-在几万行重新生成的噪音里，diff 也读不出任何意义。
+`EdNovasCloud_clash_v2.yaml` / `_win.yaml` 虽是产物，但仍进 git ——因为设备是通过
+CDN 订阅这份文件的，必须有个稳定 URL 可拉取。它的 diff 天然是几万行噪音（当天订阅
+内容 + 补丁），真正的决策看 `merge_ednovas*.py` 的 diff，不看产物本身的 diff。
 
 ---
 
@@ -82,10 +83,10 @@ print(f"分组={len(G)} 节点={len(known)} 规则={len(c['rules'])}")
 EOF
 ```
 
-### 4. 加载
+### 4. 推送并分发（见下方"分发到 CDN"一节）
 
-Clash Verge → 订阅 → 新建 **Local** 类型，指向
-`~/clash-config-repo/EdNovasCloud_clash_v2.yaml`；已有则点刷新。
+生成后不再本地加载——commit + push + purge CDN 缓存 + curl 验证，然后各设备
+（Mac / Android，将来也可以是别的手机）订阅同一个 CDN URL，点更新即可。
 
 ---
 
