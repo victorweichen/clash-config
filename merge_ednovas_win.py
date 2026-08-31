@@ -11,14 +11,15 @@ see merge_ednovas.py for why each exists):
     what this file's home node does
   - the mihomo-native tsnet node — tied to a specific tsnet auth/identity on
     the Mac; a Windows tsnet node would need its own
-  - TAILNET_IFACE auto-detection and the interface-pinned DIRECT outbound —
-    Windows' Tailscale interface has a stable name ("Tailscale", no utun-style
-    drift) so the mechanism that motivated it doesn't apply the same way, and
-    whether Windows' plain DIRECT can actually reach 100.x through mihomo's
-    TUN is UNVERIFIED. If tailnet sites are unreachable from a browser on
-    Lenovo the way they were on Mac before that fix, the same interface-pinned
-    DIRECT outbound (with interface-name: Tailscale instead of a detected
-    utun) is the next thing to try.
+
+Windows DOES use an interface-pinned DIRECT outbound for tailnet traffic
+(🔗 tailnet直连, interface-name: Tailscale) — unlike Mac this needs no drift
+detection, since "Tailscale" is a stable Windows adapter name, so it's just a
+literal instead of TAILNET_IFACE auto-detection. Confirmed 2026-08-31 this is
+actually necessary here too, not just a Mac quirk: mihomo's plain DIRECT
+returned 504 Gateway Timeout dialing a tailnet address that Test-NetConnection
+(raw OS TCP, bypassing mihomo) reached fine — same auto-detect-interface bug,
+platform-independent.
 
 Unlike merge_ednovas.py's output (a Local-only test profile, deliberately kept
 out of git), THIS script's output is the actual file Lenovo subscribes to via
@@ -36,6 +37,7 @@ DST = f"{REPO}/EdNovasCloud_clash_win.yaml"
 
 HOME = "'🏠 家庭宽带美国'"      # direct SOCKS5 to the Mac mini, no local relay
 US   = "'🇺🇲 美国节点'"
+TDIRECT = "'🔗 tailnet直连'"    # DIRECT pinned to the Tailscale interface
 
 # Same airport, same node identity — see merge_ednovas.py for the measurement.
 DEAD_NODES = ["0.1X 🇺🇸 美国8"]
@@ -124,6 +126,19 @@ lines.insert(pg,
     f"    - {{ name: {HOME}, type: socks5, server: 100.95.126.121, port: 1080, "
     f"interface-name: {TAILNET_IFACE}, udp: true }}")
 
+# ── 3b. DIRECT pinned to the Tailscale interface, for tailnet traffic ─
+# Plain DIRECT cannot reach tailnet addresses: mihomo's auto-detect-interface
+# binds the outbound socket to the physical NIC, and 100.x only routes over
+# the Tailscale interface. Confirmed 2026-08-31 via mihomo's per-proxy
+# delay-check (bypasses the rule table): DIRECT to a real, definitely-up
+# tailnet target returned 504 Gateway Timeout, while Test-NetConnection to the
+# exact same address (raw OS TCP, no mihomo) succeeded — same root cause as
+# the bug fixed on Mac, just without the utun-renumbering complication, since
+# "Tailscale" is a stable Windows adapter name (unlike this node's `interface-
+# name` above, this doesn't need drift detection — see module docstring for
+# why Mac needed tsnet instead of just doing this).
+lines.insert(pg + 1, f"    - {{ name: {TDIRECT}, type: direct, interface-name: {TAILNET_IFACE} }}")
+
 # ── 4. proxy-groups ──────────────────────────────────────────────────
 prepend_member("EdNovas云", HOME)
 prepend_member("'🇺🇲 美国节点'", HOME)
@@ -200,9 +215,10 @@ MS_DIRECT_SUFFIXES = [
     "akamai.net", "akamaized.net", "akamaihd.net", "akamaiedge.net",
     "akamaistream.net", "sadownload.mcafee.com", "datadoghq.com", "slackb.com",
 ]
+td = TDIRECT.strip("'")
 head_rules = [
     "    # ── Tailscale CGNAT: must be first, else TUN loops on the SOCKS5 relay ──",
-    "    - 'IP-CIDR,100.64.0.0/10,DIRECT,no-resolve'",
+    f"    - 'IP-CIDR,100.64.0.0/10,{td},no-resolve'",
     "    # ── Telegram: desktop client dials cached DC IPs directly, so the ──",
     "    # ── domain rules below aren't enough; needs the full ASN ranges. ──",
     "    - 'RULE-SET,telegram-ip,EdNovas云'",
@@ -216,11 +232,8 @@ head_rules = [
     "    - 'DOMAIN-SUFFIX,tailscale.com,DIRECT'",
     "    - 'DOMAIN-SUFFIX,tailscale.io,DIRECT'",
     "    - 'DOMAIN-SUFFIX,tailscale.net,DIRECT'",
-    "    # ── MagicDNS names resolve to 100.x, which the CGNAT rule already ──",
-    "    # ── sends DIRECT. UNVERIFIED on Windows whether mihomo's DIRECT ──",
-    "    # ── outbound actually reaches the tailnet through TUN the way it ──",
-    "    # ── silently failed to on macOS — see module docstring. ──",
-    "    - 'DOMAIN-SUFFIX,ts.net,DIRECT'",
+    "    # ── tailnet: must use the interface-pinned outbound, not DIRECT ──",
+    f"    - 'DOMAIN-SUFFIX,ts.net,{td}'",
     "    - 'DOMAIN-SUFFIX,gate.com,EdNovas云'",
     "    - 'DOMAIN-SUFFIX,openrouter.ai,OpenRouter'",
     "    # ── Microsoft/OneDrive/Akamai direct to save quota (upstream now ──",

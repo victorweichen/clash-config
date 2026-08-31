@@ -71,6 +71,7 @@ proxies:
     - { name: '0.1X 🇭🇰 香港14 PornEmby专用', type: vmess, server: asia.ysqhq.top, port: 21866, uuid: e6aa118f-167a-4ab0-a6a0-d9c75b7a9c10, alterId: 0, cipher: auto, udp: true }
     - { name: '5.0X 🇺🇳 随机国家家宽', type: vmess, server: asia.ysqhq.top, port: 22140, uuid: e6aa118f-167a-4ab0-a6a0-d9c75b7a9c10, alterId: 0, cipher: auto, udp: true }
     - { name: '🏠 家庭宽带美国', type: socks5, server: 100.95.126.121, port: 1080, interface-name: Tailscale, udp: true }
+    - { name: '🔗 tailnet直连', type: direct, interface-name: Tailscale }
 proxy-groups:
     - { name: EdNovas云, type: select, proxies: ['🏠 家庭宽带美国', 自动选择, 故障转移, 负载均衡, 手动切换, '🇭🇰 香港节点', '🇹🇼 台湾节点', '🇺🇲 美国节点', '🇸🇬 狮城节点', '🇰🇷 韩国节点', '🇯🇵 日本节点', 低倍率节点, 高倍率节点, DIRECT, '剩余流量：100 GB', 套餐到期：2026-09-17, 'EdNovas云 https://ednovas.me/', '用户群 https://t.me/ednovasyun', '使用说明 https://help.ednovas.me', '0.1X 🇺🇸 美国2', '0.2X 🇺🇸 美国3', '0.8X 🇺🇸 美国4', '1.0X 🇺🇸 美国9', '0.5X 🇺🇸 美国10', '0.1X 🇺🇸 美国23', '0.8X 🇺🇸 美国16', '0.5X 🇺🇸 美国17', '0.8X 🇨🇦 加拿大3', '0.8X 🇳🇱 荷兰 2', '0.5X 🇱🇺 卢森堡', '0.2X 🇷🇺 俄罗斯', '0.5X 🇺🇦 乌克兰2', '0.5X 🇮🇩 印度尼西亚2', '2.0X 🇮🇳 印度', '0.5X 🇸🇬 新加坡1', '0.5X 🇸🇬 新加坡2', '1.0X 🇸🇬 新加坡3', '2.0X 🇦🇺 澳大利亚3', '1.0X 🇰🇷 韩国1', '0.5X 🇯🇵 日本1', '1.0X 🇯🇵 日本3', '0.8X 🇯🇵 日本4', '3.0X 🇹🇼 台湾1', '1.0X 🇹🇼 台湾2', '0.5X 🇹🇼 台湾3 家宽', '0.5X 🇭🇰 香港0', '0.5X 🇭🇰 香港1', '0.5X 🇭🇰 香港2', '3.0X 🇭🇰 香港6', '1.0X 🇭🇰 香港7', '2.0X 🇭🇰 香港8 HKT', '0.5X 🇭🇰 香港9', '1.5X 🇭🇰 香港10 HGC 家宽', '0.7X 🇭🇰 香港14', '0.1X 🇭🇰 香港14 PornEmby专用', '5.0X 🇺🇳 随机国家家宽'] }
     - { name: 自动选择, type: url-test, proxies: ['🏠 家庭宽带美国', '剩余流量：100 GB', 套餐到期：2026-09-17, 'EdNovas云 https://ednovas.me/', '用户群 https://t.me/ednovasyun', '使用说明 https://help.ednovas.me', '0.1X 🇺🇸 美国2', '0.2X 🇺🇸 美国3', '0.8X 🇺🇸 美国4', '1.0X 🇺🇸 美国9', '0.5X 🇺🇸 美国10', '0.1X 🇺🇸 美国23', '0.8X 🇺🇸 美国16', '0.5X 🇺🇸 美国17', '0.8X 🇨🇦 加拿大3', '0.8X 🇳🇱 荷兰 2', '0.5X 🇱🇺 卢森堡', '0.2X 🇷🇺 俄罗斯', '0.5X 🇺🇦 乌克兰2', '0.5X 🇮🇩 印度尼西亚2', '2.0X 🇮🇳 印度', '0.5X 🇸🇬 新加坡1', '0.5X 🇸🇬 新加坡2', '1.0X 🇸🇬 新加坡3', '2.0X 🇦🇺 澳大利亚3', '1.0X 🇰🇷 韩国1', '0.5X 🇯🇵 日本1', '1.0X 🇯🇵 日本3', '0.8X 🇯🇵 日本4', '3.0X 🇹🇼 台湾1', '1.0X 🇹🇼 台湾2', '0.5X 🇹🇼 台湾3 家宽', '0.5X 🇭🇰 香港0', '0.5X 🇭🇰 香港1', '0.5X 🇭🇰 香港2', '3.0X 🇭🇰 香港6', '1.0X 🇭🇰 香港7', '2.0X 🇭🇰 香港8 HKT', '0.5X 🇭🇰 香港9', '1.5X 🇭🇰 香港10 HGC 家宽', '0.7X 🇭🇰 香港14', '0.1X 🇭🇰 香港14 PornEmby专用', '5.0X 🇺🇳 随机国家家宽'], url: 'http://www.gstatic.com/generate_204', interval: 300 }
@@ -115,7 +116,7 @@ rule-providers:
     telegram-ip: { type: http, behavior: ipcidr, url: 'https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/telegramcidr.txt', path: ./ruleset/telegram-ip.yaml, interval: 86400 }
 rules:
     # ── Tailscale CGNAT: must be first, else TUN loops on the SOCKS5 relay ──
-    - 'IP-CIDR,100.64.0.0/10,DIRECT,no-resolve'
+    - 'IP-CIDR,100.64.0.0/10,🔗 tailnet直连,no-resolve'
     # ── Telegram: desktop client dials cached DC IPs directly, so the ──
     # ── domain rules below aren't enough; needs the full ASN ranges. ──
     - 'RULE-SET,telegram-ip,EdNovas云'
@@ -129,11 +130,8 @@ rules:
     - 'DOMAIN-SUFFIX,tailscale.com,DIRECT'
     - 'DOMAIN-SUFFIX,tailscale.io,DIRECT'
     - 'DOMAIN-SUFFIX,tailscale.net,DIRECT'
-    # ── MagicDNS names resolve to 100.x, which the CGNAT rule already ──
-    # ── sends DIRECT. UNVERIFIED on Windows whether mihomo's DIRECT ──
-    # ── outbound actually reaches the tailnet through TUN the way it ──
-    # ── silently failed to on macOS — see module docstring. ──
-    - 'DOMAIN-SUFFIX,ts.net,DIRECT'
+    # ── tailnet: must use the interface-pinned outbound, not DIRECT ──
+    - 'DOMAIN-SUFFIX,ts.net,🔗 tailnet直连'
     - 'DOMAIN-SUFFIX,gate.com,EdNovas云'
     - 'DOMAIN-SUFFIX,openrouter.ai,OpenRouter'
     # ── Microsoft/OneDrive/Akamai direct to save quota (upstream now ──
