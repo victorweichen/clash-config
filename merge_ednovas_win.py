@@ -38,6 +38,8 @@ DST = f"{REPO}/EdNovasCloud_clash_win.yaml"
 HOME = "'🏠 家庭宽带美国'"      # direct SOCKS5 to the Mac mini, no local relay
 US   = "'🇺🇲 美国节点'"
 TDIRECT = "'🔗 tailnet直连'"    # DIRECT pinned to the Tailscale interface
+UST  = "'🇺🇲 美国节点+tailnet'"
+GEMT = "'🇺🇲 Gemini+tailnet'"
 
 # Same airport, same node identity — see merge_ednovas.py for the measurement.
 DEAD_NODES = ["0.1X 🇺🇸 美国8"]
@@ -155,23 +157,35 @@ assert "interval: 86400" in lines[i], "自动选择 interval changed upstream �
 lines[i] = lines[i].replace("interval: 86400", f"interval: {AUTOSELECT_INTERVAL}", 1)
 
 # Upstream restructured: service groups reference EdNovas云 directly. Give them
-# the home exit too (no tailnet-url-test twin on Windows — see module docstring).
+# the home exit too.
 n_svc = inject_after("EdNovas云,", f"{HOME},", 14, "service groups")
 
+# Named to match the Mac config (🇺🇲 美国节点+tailnet / 🇺🇲 Gemini+tailnet) even
+# though there's no tsnet node to pair with here — "+tailnet" on this platform
+# just means "includes the SOCKS5 home broadband node", which both do.
+#
 # Derive a Gemini-safe US group. Candidates measured on the Mac 2026-08-17 by
 # binding one HTTP listener per node and checking which ones Google keeps on
 # google.com — 美国2/美国17 get geo-redirected to google.com.hk (Google reads
 # their US IPs as HK/CN), and 美国8 is dead. Same airport serves both
 # platforms, so the same exclusions apply here.
 us_i = group_idx("'🇺🇲 美国节点'")
+
+# 🇺🇲 美国节点+tailnet: same node list as 🇺🇲 美国节点 (which already got HOME
+# prepended above), just under the Mac-matching name.
+us_nodes = lines[us_i].split("proxies: [", 1)[1].rsplit("]", 1)[0]
+assert HOME in us_nodes, "🇺🇲 美国节点 should already have the home node prepended"
+assert "美国" in us_nodes, "could not parse US node list"
+
 new_groups = [
-    "    - { name: '🇺🇲 Gemini', type: url-test, proxies: ['0.2X 🇺🇸 美国3', '0.1X 🇺🇸 美国23', '0.8X 🇺🇸 美国16', '0.8X 🇺🇸 美国4', '1.0X 🇺🇸 美国9', '0.5X 🇺🇸 美国10'], url: 'https://gemini.google.com/app', expected-status: '200', interval: 300 }",
+    f"    - {{ name: {UST}, type: url-test, proxies: [{us_nodes}], url: 'http://1.1.1.1/', interval: 300 }}",
+    f"    - {{ name: {GEMT}, type: url-test, proxies: [{HOME}, '0.2X 🇺🇸 美国3', '0.1X 🇺🇸 美国23', '0.8X 🇺🇸 美国16', '0.8X 🇺🇸 美国4', '1.0X 🇺🇸 美国9', '0.5X 🇺🇸 美国10'], url: 'https://gemini.google.com/app', expected-status: '200', interval: 300 }}",
     # 中国以外 and 🇺🇲 美国Gemini were dropped by upstream — OpenRouter's list is
     # rebuilt without them (referencing a nonexistent group fails config load).
-    f"    - {{ name: OpenRouter, type: select, proxies: [自动选择, {US}, '🇺🇲 Gemini'] }}",
+    f"    - {{ name: OpenRouter, type: select, proxies: [自动选择, {US}, {UST}, {GEMT}] }}",
 ]
 lines[us_i + 1:us_i + 1] = new_groups
-prepend_member("Gemini", "'🇺🇲 Gemini'")
+prepend_member("Gemini", GEMT)
 
 # ── 5. drop nodes measured dead ──────────────────────────────────────
 for dead in DEAD_NODES:
