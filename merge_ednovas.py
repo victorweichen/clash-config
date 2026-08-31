@@ -206,6 +206,9 @@ lines[i] = lines[i].rstrip()[:-len("] }")] + "], url: 'http://1.1.1.1/', interva
 # Gemini reaches for the tailnet exit first (a US residential IP is treated far
 # better than a datacenter one).
 prepend_member("Gemini", GEMT)
+# Claude already gets UST from the blanket service-group injection below;
+# it's just missing the Gemini-safe candidate list.
+prepend_member("Claude", GEMT)
 
 # Tighten the auto-selector's health check (see AUTOSELECT_INTERVAL).
 i = group_idx("自动选择")

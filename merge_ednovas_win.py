@@ -186,6 +186,10 @@ new_groups = [
 ]
 lines[us_i + 1:us_i + 1] = new_groups
 prepend_member("Gemini", GEMT)
+# Claude gets both tailnet variants directly (not part of the blanket
+# service-group injection above, which only adds the plain home node).
+prepend_member("Claude", UST)
+prepend_member("Claude", GEMT)
 
 # ── 5. drop nodes measured dead ──────────────────────────────────────
 for dead in DEAD_NODES:
