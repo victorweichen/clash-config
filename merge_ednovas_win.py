@@ -44,6 +44,9 @@ GEMT = "'🇺🇲 Gemini+tailnet'"
 # Same airport, same node identity — see merge_ednovas.py for the measurement.
 DEAD_NODES = ["0.1X 🇺🇸 美国8"]
 
+# Same airport, same "VLESS 中转" line — see merge_ednovas.py for the measurement.
+DEAD_NAME_SUFFIXES = [" VLESS 中转"]
+
 AUTOSELECT_INTERVAL = 300   # upstream ships 86400 (24h) — see merge_ednovas.py
 
 # Tailnet machines pinned statically for MagicDNS-name resolution (see the DNS
@@ -219,7 +222,14 @@ prepend_member("Claude", UST)
 prepend_member("Claude", GEMT)
 
 # ── 5. drop nodes measured dead ──────────────────────────────────────
-for dead in DEAD_NODES:
+name_pat = re.compile(r"- \{ name: '([^']*)', type: (?:vmess|vless),")
+suffix_matches = sorted({
+    m.group(1) for l in lines if (m := name_pat.search(l))
+    if any(m.group(1).endswith(suf) for suf in DEAD_NAME_SUFFIXES)
+})
+assert suffix_matches, f"{DEAD_NAME_SUFFIXES}: expected matching nodes, found none"
+
+for dead in DEAD_NODES + suffix_matches:
     q = f"'{dead}'"
     n_ref = 0
     for i, l in enumerate(lines):
@@ -236,7 +246,7 @@ for dead in DEAD_NODES:
         n_ref += 1
     assert n_ref, f"{dead}: expected group references, found none"
     di = [i for i, l in enumerate(lines)
-          if l.lstrip().startswith("- { name: " + q + ",") and "type: vmess" in l]
+          if l.lstrip().startswith("- { name: " + q + ",") and re.search(r"type: (vmess|vless)", l)]
     assert len(di) == 1, f"{dead}: expected 1 node definition, found {len(di)}"
     del lines[di[0]]
     still = [i for i, l in enumerate(lines) if q in l]

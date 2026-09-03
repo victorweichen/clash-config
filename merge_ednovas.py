@@ -50,6 +50,14 @@ TAILNET_HOSTS = {
 # despite the 美国8 label). Delete from this list if the airport revives it.
 DEAD_NODES = ["0.1X 🇺🇸 美国8"]
 
+# Measured dead 2026-09-03: upstream added a "VLESS 中转" twin for nearly every
+# existing node in this refresh, and every single one of them (38/38) failed
+# the delay check while the plain node it twins survived at a normal ~19% dead
+# rate — a whole relay line that isn't live yet, not organic node churn.
+# Matched by suffix (not DEAD_NODES) since the exact roster shifts release to
+# release; drop this once EdNovas actually turns the line on.
+DEAD_NAME_SUFFIXES = [" VLESS 中转"]
+
 # Health-check cadence for auto-selecting groups. Upstream ships 自动选择 with
 # interval 86400, i.e. a dead node is not noticed for a day — the exact failure
 # mode that kept stranding us on nodes that had stopped working.
@@ -272,7 +280,14 @@ new_groups = [
 lines[us_i + 1:us_i + 1] = new_groups
 
 # ── 5. drop nodes measured dead ──────────────────────────────────────
-for dead in DEAD_NODES:
+name_pat = re.compile(r"- \{ name: '([^']*)', type: (?:vmess|vless),")
+suffix_matches = sorted({
+    m.group(1) for l in lines if (m := name_pat.search(l))
+    if any(m.group(1).endswith(suf) for suf in DEAD_NAME_SUFFIXES)
+})
+assert suffix_matches, f"{DEAD_NAME_SUFFIXES}: expected matching nodes, found none"
+
+for dead in DEAD_NODES + suffix_matches:
     q = f"'{dead}'"
     n_ref = 0
     for i, l in enumerate(lines):
@@ -289,7 +304,7 @@ for dead in DEAD_NODES:
         n_ref += 1
     assert n_ref, f"{dead}: expected group references, found none"
     di = [i for i, l in enumerate(lines)
-          if l.lstrip().startswith("- { name: " + q + ",") and "type: vmess" in l]
+          if l.lstrip().startswith("- { name: " + q + ",") and re.search(r"type: (vmess|vless)", l)]
     assert len(di) == 1, f"{dead}: expected 1 node definition, found {len(di)}"
     del lines[di[0]]
     still = [i for i, l in enumerate(lines) if q in l]
