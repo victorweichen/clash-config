@@ -109,33 +109,60 @@ lines.insert(0, "ipv6: false")
 # CDN edges, and CN-misclassified IPs get routed out through US proxies.
 # Domestic-first in nameserver; foreign resolvers only in fallback.
 i = find(lambda l: l.strip().startswith("nameserver: [223.5.5.5"), "dns nameserver")[0]
-lines[i:i + 1] = [
-    "    nameserver: [223.5.5.5, 223.6.6.6, 119.29.29.29, 'https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query']",
-    # MagicDNS fallback (for tailnet names NOT in TAILNET_HOSTS below, which
-    # resolves those with zero DNS traffic). A plain `100.100.100.100` entry
-    # does NOT work: mihomo sends its own DNS queries from the physical
-    # interface (bypassing its own TUN to avoid a loop), and Tailscale's
-    # resolver is only reachable over the Tailscale interface — measured as
-    # `read udp 192.168.1.47:...->100.100.100.100:53: i/o timeout`.
-    # `#<name>` binds to a PROXY by that name if one exists (falling back to
-    # an interface name otherwise, per mihomo's DNS docs) — so this routes the
-    # query through the gost-relay home node instead of naming any interface.
-    # Must be gost, not tsnet: 100.100.100.100 (Tailscale's "Quad100" DNS stub)
-    # is intercepted locally by the full tailscaled daemon on whichever machine
-    # actually dials it — the Mac mini runs that, but mihomo's embedded tsnet
-    # client does not implement Quad100 itself, so tsnet can reach every other
-    # tailnet peer directly (verified) yet times out dialing 100.100.100.100
-    # specifically. Must be TCP: plain UDP through this relay reliably fails
-    # with `use of closed network connection`; TCP resolved correctly on 3/3
-    # tries in testing.
-    "    nameserver-policy:",
-    f"        '+.ts.net': ['tcp://100.100.100.100#{HOME.strip(chr(39))}']",
-    "    fallback: ['https://1.1.1.1/dns-query', 'https://8.8.8.8/dns-query', 'tls://1.1.1.1', 'tls://8.8.8.8']",
-    "    fallback-filter:",
-    "        geoip: true",
-    "        geoip-code: CN",
-    "        ipcidr: ['240.0.0.0/4', '0.0.0.0/8']",
-]
+
+# MagicDNS fallback (for tailnet names NOT in TAILNET_HOSTS below, which
+# resolves those with zero DNS traffic). A plain `100.100.100.100` entry
+# does NOT work: mihomo sends its own DNS queries from the physical
+# interface (bypassing its own TUN to avoid a loop), and Tailscale's
+# resolver is only reachable over the Tailscale interface — measured as
+# `read udp 192.168.1.47:...->100.100.100.100:53: i/o timeout`.
+# `#<name>` binds to a PROXY by that name if one exists (falling back to
+# an interface name otherwise, per mihomo's DNS docs) — so this routes the
+# query through the gost-relay home node instead of naming any interface.
+# Must be gost, not tsnet: 100.100.100.100 (Tailscale's "Quad100" DNS stub)
+# is intercepted locally by the full tailscaled daemon on whichever machine
+# actually dials it — the Mac mini runs that, but mihomo's embedded tsnet
+# client does not implement Quad100 itself, so tsnet can reach every other
+# tailnet peer directly (verified) yet times out dialing 100.100.100.100
+# specifically. Must be TCP: plain UDP through this relay reliably fails
+# with `use of closed network connection`; TCP resolved correctly on 3/3
+# tries in testing.
+ts_policy_entry = f"'+.ts.net': ['tcp://100.100.100.100#{HOME.strip(chr(39))}']"
+
+# Upstream sometimes ships its own `nameserver-policy` (added for ednovas.*
+# domains in a later subscription refresh) sitting just above `nameserver:`.
+# YAML forbids two `nameserver-policy` keys in the same mapping, so if one is
+# already there, merge our entry into it instead of inserting a second one.
+existing_policy_i = None
+for j in range(max(0, i - 5), i):
+    if lines[j].strip().startswith("nameserver-policy:") and lines[j].rstrip().endswith("}"):
+        existing_policy_i = j
+        break
+
+if existing_policy_i is not None:
+    assert ts_policy_entry.split(":", 1)[0] not in lines[existing_policy_i], "+.ts.net already in upstream nameserver-policy"
+    head = lines[existing_policy_i].rstrip()
+    assert head.endswith("}"), "upstream nameserver-policy not flow-style, adjust merge"
+    lines[existing_policy_i] = head[:-1].rstrip().rstrip(",") + f", {ts_policy_entry} }}"
+    lines[i:i + 1] = [
+        "    nameserver: [223.5.5.5, 223.6.6.6, 119.29.29.29, 'https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query']",
+        "    fallback: ['https://1.1.1.1/dns-query', 'https://8.8.8.8/dns-query', 'tls://1.1.1.1', 'tls://8.8.8.8']",
+        "    fallback-filter:",
+        "        geoip: true",
+        "        geoip-code: CN",
+        "        ipcidr: ['240.0.0.0/4', '0.0.0.0/8']",
+    ]
+else:
+    lines[i:i + 1] = [
+        "    nameserver: [223.5.5.5, 223.6.6.6, 119.29.29.29, 'https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query']",
+        "    nameserver-policy:",
+        f"        {ts_policy_entry}",
+        "    fallback: ['https://1.1.1.1/dns-query', 'https://8.8.8.8/dns-query', 'tls://1.1.1.1', 'tls://8.8.8.8']",
+        "    fallback-filter:",
+        "        geoip: true",
+        "        geoip-code: CN",
+        "        ipcidr: ['240.0.0.0/4', '0.0.0.0/8']",
+    ]
 
 # fake-ip would hand out a 198.18.x.x for tailnet names, so the connection gets
 # routed by domain (-> MATCH -> proxy) instead of straight down the tailnet.

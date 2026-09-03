@@ -102,18 +102,45 @@ lines.insert(0, "ipv6: false")
 
 # ── 2. DNS ───────────────────────────────────────────────────────────
 i = find(lambda l: l.strip().startswith("nameserver: [223.5.5.5"), "dns nameserver")[0]
-lines[i:i + 1] = [
-    "    nameserver: [223.5.5.5, 223.6.6.6, 119.29.29.29, 'https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query']",
-    # MagicDNS resolution. Unlike on macOS this needs no interface-drift
-    # handling — "Tailscale" is a stable adapter name on Windows.
-    "    nameserver-policy:",
-    f"        '+.ts.net': ['100.100.100.100#{TAILNET_IFACE}']",
-    "    fallback: ['https://1.1.1.1/dns-query', 'https://8.8.8.8/dns-query', 'tls://1.1.1.1', 'tls://8.8.8.8']",
-    "    fallback-filter:",
-    "        geoip: true",
-    "        geoip-code: CN",
-    "        ipcidr: ['240.0.0.0/4', '0.0.0.0/8']",
-]
+
+# MagicDNS resolution. Unlike on macOS this needs no interface-drift
+# handling — "Tailscale" is a stable adapter name on Windows.
+ts_policy_entry = f"'+.ts.net': ['100.100.100.100#{TAILNET_IFACE}']"
+
+# Upstream sometimes ships its own `nameserver-policy` (added for ednovas.*
+# domains in a later subscription refresh) sitting just above `nameserver:`.
+# YAML forbids two `nameserver-policy` keys in the same mapping, so if one is
+# already there, merge our entry into it instead of inserting a second one.
+existing_policy_i = None
+for j in range(max(0, i - 5), i):
+    if lines[j].strip().startswith("nameserver-policy:") and lines[j].rstrip().endswith("}"):
+        existing_policy_i = j
+        break
+
+if existing_policy_i is not None:
+    assert ts_policy_entry.split(":", 1)[0] not in lines[existing_policy_i], "+.ts.net already in upstream nameserver-policy"
+    head = lines[existing_policy_i].rstrip()
+    assert head.endswith("}"), "upstream nameserver-policy not flow-style, adjust merge"
+    lines[existing_policy_i] = head[:-1].rstrip().rstrip(",") + f", {ts_policy_entry} }}"
+    lines[i:i + 1] = [
+        "    nameserver: [223.5.5.5, 223.6.6.6, 119.29.29.29, 'https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query']",
+        "    fallback: ['https://1.1.1.1/dns-query', 'https://8.8.8.8/dns-query', 'tls://1.1.1.1', 'tls://8.8.8.8']",
+        "    fallback-filter:",
+        "        geoip: true",
+        "        geoip-code: CN",
+        "        ipcidr: ['240.0.0.0/4', '0.0.0.0/8']",
+    ]
+else:
+    lines[i:i + 1] = [
+        "    nameserver: [223.5.5.5, 223.6.6.6, 119.29.29.29, 'https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query']",
+        "    nameserver-policy:",
+        f"        {ts_policy_entry}",
+        "    fallback: ['https://1.1.1.1/dns-query', 'https://8.8.8.8/dns-query', 'tls://1.1.1.1', 'tls://8.8.8.8']",
+        "    fallback-filter:",
+        "        geoip: true",
+        "        geoip-code: CN",
+        "        ipcidr: ['240.0.0.0/4', '0.0.0.0/8']",
+    ]
 
 i = find(lambda l: l.strip().startswith("fake-ip-filter: ["), "fake-ip-filter")[0]
 assert "ts.net" not in lines[i], "ts.net already filtered"
