@@ -45,18 +45,19 @@ TAILNET_HOSTS = {
 }
 
 
-# Measured dead 2026-08-17: server TCP connects but the vmess tunnel carries
-# nothing — 4/4 requests timed out at a flat 5s (its server is japan.ysqhq.top
-# despite the 美国8 label). Delete from this list if the airport revives it.
-DEAD_NODES = ["0.1X 🇺🇸 美国8"]
+# 2026-09-04: EdNovas finished a protocol upgrade and renamed the whole
+# roster (vmess "X" -> vless "X VLESS", dropping "中转"). Re-measured after
+# the upgrade: 27/38 alive (71%, normal churn — the pre-upgrade "VLESS 中转"
+# batch was 0/38 alive, a dead line, not this). 美国8 is still dead under its
+# new name too — same broken node (real server is japan.ysqhq.top per the
+# 2026-08-17 measurement), independent of the protocol change.
+DEAD_NODES = ["0.1X 🇺🇸 美国8 VLESS"]
 
-# Measured dead 2026-09-03: upstream added a "VLESS 中转" twin for nearly every
-# existing node in this refresh, and every single one of them (38/38) failed
-# the delay check while the plain node it twins survived at a normal ~19% dead
-# rate — a whole relay line that isn't live yet, not organic node churn.
-# Matched by suffix (not DEAD_NODES) since the exact roster shifts release to
-# release; drop this once EdNovas actually turns the line on.
-DEAD_NAME_SUFFIXES = [" VLESS 中转"]
+# No current suffix to filter — the old "VLESS 中转" line was replaced
+# wholesale by the rename above, not left running alongside a working one.
+# Leave the mechanism in place in case EdNovas ships another broken batch
+# under a new suffix.
+DEAD_NAME_SUFFIXES = []
 
 # Health-check cadence for auto-selecting groups. Upstream ships 自动选择 with
 # interval 86400, i.e. a dead node is not noticed for a day — the exact failure
@@ -272,7 +273,7 @@ new_groups = [
     # which is what makes Gemini report the wrong location), and 美国8 is dead.
     # Ordered by measured latency to gemini.google.com; the health check hits
     # Gemini itself so a node Google starts down-ranking drops out on its own.
-    f"    - {{ name: '🇺🇲 Gemini+tailnet', type: url-test, proxies: ['0.2X 🇺🇸 美国3', '0.1X 🇺🇸 美国23', '0.8X 🇺🇸 美国16', '0.8X 🇺🇸 美国4', '1.0X 🇺🇸 美国9', '0.5X 🇺🇸 美国10', {HOME}], url: 'https://gemini.google.com/app', expected-status: '200', interval: 300 }}",
+    f"    - {{ name: '🇺🇲 Gemini+tailnet', type: url-test, proxies: ['0.2X 🇺🇸 美国3 VLESS', '0.1X 🇺🇸 美国23 VLESS', '0.8X 🇺🇸 美国16 VLESS', '0.8X 🇺🇸 美国4 VLESS', '1.0X 🇺🇸 美国9 VLESS', '0.5X 🇺🇸 美国10 VLESS', {HOME}], url: 'https://gemini.google.com/app', expected-status: '200', interval: 300 }}",
     # 中国以外 and 🇺🇲 美国Gemini were dropped by upstream — referencing them
     # would fail config load, so OpenRouter's list is rebuilt without them.
     f"    - {{ name: OpenRouter, type: select, proxies: [自动选择, {US}, {UST}, {GEMT}] }}",
@@ -285,7 +286,8 @@ suffix_matches = sorted({
     m.group(1) for l in lines if (m := name_pat.search(l))
     if any(m.group(1).endswith(suf) for suf in DEAD_NAME_SUFFIXES)
 })
-assert suffix_matches, f"{DEAD_NAME_SUFFIXES}: expected matching nodes, found none"
+if DEAD_NAME_SUFFIXES:
+    assert suffix_matches, f"{DEAD_NAME_SUFFIXES}: expected matching nodes, found none"
 
 for dead in DEAD_NODES + suffix_matches:
     q = f"'{dead}'"

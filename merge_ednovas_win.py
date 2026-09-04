@@ -42,10 +42,14 @@ UST  = "'🇺🇲 美国节点+tailnet'"
 GEMT = "'🇺🇲 Gemini+tailnet'"
 
 # Same airport, same node identity — see merge_ednovas.py for the measurement.
-DEAD_NODES = ["0.1X 🇺🇸 美国8"]
+# 2026-09-04: EdNovas's protocol upgrade renamed the whole roster (vmess "X"
+# -> vless "X VLESS"); 美国8 is still dead under its new name too.
+DEAD_NODES = ["0.1X 🇺🇸 美国8 VLESS"]
 
-# Same airport, same "VLESS 中转" line — see merge_ednovas.py for the measurement.
-DEAD_NAME_SUFFIXES = [" VLESS 中转"]
+# The old "VLESS 中转" line no longer exists post-upgrade (see
+# merge_ednovas.py) — nothing to filter right now. Left in place in case
+# EdNovas ships another broken batch under a new suffix.
+DEAD_NAME_SUFFIXES = []
 
 AUTOSELECT_INTERVAL = 300   # upstream ships 86400 (24h) — see merge_ednovas.py
 
@@ -209,7 +213,7 @@ assert "美国" in us_nodes, "could not parse US node list"
 
 new_groups = [
     f"    - {{ name: {UST}, type: url-test, proxies: [{us_nodes}], url: 'http://1.1.1.1/', interval: 300 }}",
-    f"    - {{ name: {GEMT}, type: url-test, proxies: [{HOME}, '0.2X 🇺🇸 美国3', '0.1X 🇺🇸 美国23', '0.8X 🇺🇸 美国16', '0.8X 🇺🇸 美国4', '1.0X 🇺🇸 美国9', '0.5X 🇺🇸 美国10'], url: 'https://gemini.google.com/app', expected-status: '200', interval: 300 }}",
+    f"    - {{ name: {GEMT}, type: url-test, proxies: [{HOME}, '0.2X 🇺🇸 美国3 VLESS', '0.1X 🇺🇸 美国23 VLESS', '0.8X 🇺🇸 美国16 VLESS', '0.8X 🇺🇸 美国4 VLESS', '1.0X 🇺🇸 美国9 VLESS', '0.5X 🇺🇸 美国10 VLESS'], url: 'https://gemini.google.com/app', expected-status: '200', interval: 300 }}",
     # 中国以外 and 🇺🇲 美国Gemini were dropped by upstream — OpenRouter's list is
     # rebuilt without them (referencing a nonexistent group fails config load).
     f"    - {{ name: OpenRouter, type: select, proxies: [自动选择, {US}, {UST}, {GEMT}] }}",
@@ -227,7 +231,8 @@ suffix_matches = sorted({
     m.group(1) for l in lines if (m := name_pat.search(l))
     if any(m.group(1).endswith(suf) for suf in DEAD_NAME_SUFFIXES)
 })
-assert suffix_matches, f"{DEAD_NAME_SUFFIXES}: expected matching nodes, found none"
+if DEAD_NAME_SUFFIXES:
+    assert suffix_matches, f"{DEAD_NAME_SUFFIXES}: expected matching nodes, found none"
 
 for dead in DEAD_NODES + suffix_matches:
     q = f"'{dead}'"
