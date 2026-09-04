@@ -311,6 +311,36 @@ for dead in DEAD_NODES + suffix_matches:
     assert not still, f"{dead}: still referenced at lines {still}"
     print(f"removed dead node {dead} from {n_ref} groups + its definition")
 
+# ── 5b. keep high-multiplier nodes out of 自动选择's candidate pool ────
+# url-test races candidates on latency only — it has no notion of quota cost,
+# so it can just as easily land on a 5x node as a 1x one for the same bytes.
+# Reuse upstream's own "高倍率节点" roster as the exclusion list (instead of
+# hardcoding a multiplier cutoff) so it tracks whatever upstream calls "high"
+# release to release; PSEUDO_NAMES filters out the account-info fake entries
+# that ride along in that group too (see EdNovasCloud_clash_v2.yaml's
+# '距离下次重置剩余：18 天' non-node member).
+PSEUDO_NAMES = ("剩余流量：", "距离下次重置剩余：", "套餐到期：")
+hi_i = group_idx("高倍率节点")
+hi_body = lines[hi_i].partition("proxies: [")[2].rsplit("]", 1)[0]
+hi_members = [m.strip().strip("'\"") for m in hi_body.split(", ")]
+hi_members = [m for m in hi_members if not m.startswith(PSEUDO_NAMES)]
+assert hi_members, "高倍率节点: expected real member nodes, found none"
+
+as_i = group_idx("自动选择")
+head, sep, body = lines[as_i].partition("proxies: [")
+rest, _, tail = body.rpartition("]")
+n_removed = 0
+for m in hi_members:
+    q = f"'{m}'"
+    for pat in (q + ", ", ", " + q, q):
+        if pat in rest:
+            rest = rest.replace(pat, "", 1)
+            n_removed += 1
+            break
+assert n_removed == len(hi_members), f"高倍率节点: expected to remove {len(hi_members)} from 自动选择, removed {n_removed}"
+lines[as_i] = head + sep + rest + "]" + tail
+print(f"removed {n_removed} high-multiplier nodes from 自动选择")
+
 # ── 6. pair tsnet with the gost node everywhere ──────────────────────
 # Verified working end-to-end 2026-08-18 (egress 76.132.13.63 Comcast US, the
 # same home broadband the gost path exits from), so it sits directly after the

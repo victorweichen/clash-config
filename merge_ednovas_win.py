@@ -253,6 +253,32 @@ for dead in DEAD_NODES + suffix_matches:
     assert not still, f"{dead}: still referenced at lines {still}"
     print(f"removed dead node {dead} from {n_ref} groups + its definition")
 
+# ── 5b. keep high-multiplier nodes out of 自动选择's candidate pool ────
+# See merge_ednovas.py for the rationale — url-test races on latency only,
+# with no notion of quota cost, so reuse upstream's own "高倍率节点" roster
+# instead of hardcoding a multiplier cutoff.
+PSEUDO_NAMES = ("剩余流量：", "距离下次重置剩余：", "套餐到期：")
+hi_i = group_idx("高倍率节点")
+hi_body = lines[hi_i].partition("proxies: [")[2].rsplit("]", 1)[0]
+hi_members = [m.strip().strip("'\"") for m in hi_body.split(", ")]
+hi_members = [m for m in hi_members if not m.startswith(PSEUDO_NAMES)]
+assert hi_members, "高倍率节点: expected real member nodes, found none"
+
+as_i = group_idx("自动选择")
+head, sep, body = lines[as_i].partition("proxies: [")
+rest, _, tail = body.rpartition("]")
+n_removed = 0
+for m in hi_members:
+    q = f"'{m}'"
+    for pat in (q + ", ", ", " + q, q):
+        if pat in rest:
+            rest = rest.replace(pat, "", 1)
+            n_removed += 1
+            break
+assert n_removed == len(hi_members), f"高倍率节点: expected to remove {len(hi_members)} from 自动选择, removed {n_removed}"
+lines[as_i] = head + sep + rest + "]" + tail
+print(f"removed {n_removed} high-multiplier nodes from 自动选择")
+
 # ── 6. rule-provider: full Telegram ASN ranges ───────────────────────
 i = find(lambda l: l.strip().startswith("china-ip: {"), "china-ip rule-provider")[0]
 lines.insert(i + 1, "    telegram-ip: { type: http, behavior: ipcidr, url: 'https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/telegramcidr.txt', path: ./ruleset/telegram-ip.yaml, interval: 86400 }")
