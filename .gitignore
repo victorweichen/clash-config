@@ -1,2 +1,10 @@
 *.bak
 .DS_Store
+
+# Contain real subscription credentials (server/port/uuid) — this repo is
+# public and jsDelivr mirrors whatever's committed here, which is exactly how
+# the previous subscription's UUID ended up harvested. Never commit these;
+# generate locally and distribute over the tailnet instead.
+EdNovasCloud_clash_upstream.yaml
+EdNovasCloud_clash_v2.yaml
+EdNovasCloud_clash_win.yaml
